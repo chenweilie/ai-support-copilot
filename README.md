@@ -38,6 +38,21 @@ A production-ready AI agent that processes support tickets through a 3-step pipe
 
 ---
 
+## 🧑‍💻 My Role
+
+I designed and implemented the full pipeline, prompts, API integration, and reliability strategy. Built the end-to-end architecture from LLM agent orchestration to the frontend dashboard.
+
+---
+
+## 📸 Live API Test
+
+*(Input: typical support ticket → Output: classification + priority + drafted reply)*
+
+![FastAPI Process Ticket Result](docs/api_response.png)
+
+---
+
+
 ## 📊 Performance Metrics
 
 > Evaluated on a labeled test set of **100 tickets** spanning all 5 categories.
