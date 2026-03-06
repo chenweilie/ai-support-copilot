@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Support Copilot — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0e1a;
+      --surface: #111827;
+      --surface2: #1a2235;
+      --border: #1f2d45;
+      --accent: #6366f1;
+      --accent2: #8b5cf6;
+      --green: #10b981;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --glow: rgba(99,102,241,0.15);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #111827 0%, #1a1f3a 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      -webkit-text-fill-color: white;
+    }
+    .header-badge {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-size: 0.8rem; color: var(--green);
+    }
+    .pulse { width: 8px; height: 8px; background: var(--green); border-radius: 50%;
+      animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
+
+    /* ── Layout ── */
+    .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+
+    /* ── Stats cards ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+    }
+    .stat-value { font-size: 2.5rem; font-weight: 700; line-height: 1; }
+    .stat-label { color: var(--muted); font-size: 0.8rem; margin-top: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .stat-sub { font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem; }
+    .stat-icon { position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.75rem; opacity: 0.3; }
+
+    /* ── Main grid ── */
+    .main-grid { display: grid; grid-template-columns: 1fr 380px; gap: 1.5rem; }
+    @media (max-width: 1024px) { .main-grid { grid-template-columns: 1fr; } }
+
+    /* ── Panel ── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .panel-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .panel-title { font-weight: 600; font-size: 0.95rem; }
+    .panel-body { padding: 0; }
+
+    /* ── Submit form ── */
+    .submit-panel { margin-bottom: 1.5rem; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; padding: 1.5rem; }
+    .form-col-span { grid-column: 1 / -1; }
+    .form-label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.4rem; font-weight: 500; }
+    .form-input, .form-textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.65rem 0.875rem;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+    .form-input:focus, .form-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--glow); }
+    .form-textarea { min-height: 100px; resize: vertical; }
+    .btn-primary {
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white; border: none; border-radius: 10px;
+      padding: 0.75rem 1.5rem; font-size: 0.9rem; font-weight: 600;
+      cursor: pointer; transition: opacity 0.2s, transform 0.1s;
+      width: 100%;
+    }
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* ── Ticket table ── */
+    .ticket-table { width: 100%; border-collapse: collapse; }
+    .ticket-table th {
+      padding: 0.75rem 1.25rem;
+      text-align: left;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .ticket-table td {
+      padding: 0.875rem 1.25rem;
+      border-bottom: 1px solid rgba(31,45,69,0.5);
+      font-size: 0.875rem;
+      vertical-align: middle;
+    }
+    .ticket-table tr:hover td { background: rgba(99,102,241,0.04); }
+    .ticket-table tr:last-child td { border-bottom: none; }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+    }
+    .badge-billing { background: rgba(251,191,36,0.15); color: #fbbf24; }
+    .badge-bug { background: rgba(239,68,68,0.15); color: #f87171; }
+    .badge-feature { background: rgba(99,102,241,0.15); color: #818cf8; }
+    .badge-urgent { background: rgba(239,68,68,0.25); color: #ff4444; border: 1px solid rgba(239,68,68,0.3); animation: urgentPulse 1.5s infinite; }
+    .badge-general { background: rgba(100,116,139,0.15); color: #94a3b8; }
+    @keyframes urgentPulse { 0%,100%{opacity:1} 50%{opacity:0.7} }
+
+    .badge-pending { background: rgba(59,130,246,0.15); color: #60a5fa; }
+    .badge-needs_review { background: rgba(245,158,11,0.15); color: #fbbf24; }
+    .badge-approved { background: rgba(16,185,129,0.15); color: #34d399; }
+    .badge-rejected { background: rgba(239,68,68,0.15); color: #f87171; }
+    .badge-processed { background: rgba(16,185,129,0.1); color: #6ee7b7; }
+
+    .badge-low { background: rgba(16,185,129,0.1); color: #6ee7b7; }
+    .badge-medium { background: rgba(245,158,11,0.1); color: #fcd34d; }
+    .badge-high { background: rgba(249,115,22,0.15); color: #fb923c; }
+    .badge-critical { background: rgba(239,68,68,0.2); color: #f87171; }
+
+    /* ── Confidence bar ── */
+    .conf-bar-wrap { display: flex; align-items: center; gap: 0.5rem; }
+    .conf-bar { width: 60px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .conf-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+    .conf-text { font-size: 0.78rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+    /* ── Sidebar ── */
+    .sidebar-inner { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
+
+    /* ── Mini donut chart ── */
+    .donut-wrap { display: flex; align-items: center; justify-content: center; padding: 1rem 0; }
+
+    /* ── Category list ── */
+    .cat-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .cat-item { display: flex; align-items: center; gap: 0.75rem; }
+    .cat-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .cat-label { font-size: 0.85rem; flex: 1; }
+    .cat-count { font-size: 0.85rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+    .cat-bar-bg { width: 80px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .cat-bar-fill { height: 100%; border-radius: 2px; }
+
+    /* ── Result card ── */
+    .result-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      display: none;
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+    .result-card.visible { display: block; }
+    .result-section { margin-bottom: 0.875rem; }
+    .result-section-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 0.35rem; }
+    .result-draft {
+      background: var(--surface);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 0.875rem;
+      font-size: 0.82rem;
+      line-height: 1.6;
+      color: var(--text);
+      white-space: pre-wrap;
+      max-height: 160px;
+      overflow-y: auto;
+    }
+    .result-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+    /* ── Loading spinner ── */
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed; bottom: 2rem; right: 2rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.875rem 1.25rem;
+      font-size: 0.875rem;
+      display: none;
+      animation: slideUp 0.3s ease;
+      z-index: 999;
+      max-width: 320px;
+    }
+    #toast.show { display: block; }
+
+    /* ── Latency sparkline ── */
+    canvas { display: block; }
+    .chart-wrap { padding: 1rem 1.5rem 1.5rem; }
+
+    /* ── Empty state ── */
+    .empty-state {
+      padding: 3rem;
+      text-align: center;
+      color: var(--muted);
+    }
+    .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.4; }
+
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .text-green { color: var(--green); }
+    .text-yellow { color: var(--yellow); }
+    .text-red { color: var(--red); }
+    .text-muted { color: var(--muted); }
+    .truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🤖</div>
+    AI Support Copilot
+  </div>
+  <div class="header-badge">
+    <div class="pulse"></div>
+    <span id="header-status">Live</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Stats Row -->
+  <div class="stats-grid" id="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">📬</div>
+      <div class="stat-value text-green" id="s-total">0</div>
+      <div class="stat-label">Tickets Processed</div>
+      <div class="stat-sub">Total pipeline runs</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⚡</div>
+      <div class="stat-value" id="s-latency" style="color:var(--accent)">—</div>
+      <div class="stat-label">Avg Latency</div>
+      <div class="stat-sub">End-to-end pipeline time</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">👀</div>
+      <div class="stat-value text-yellow" id="s-review">0</div>
+      <div class="stat-label">Review Queue</div>
+      <div class="stat-sub">Awaiting human approval</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-value text-green" id="s-approved">0</div>
+      <div class="stat-label">Approved</div>
+      <div class="stat-sub">Sent to customers</div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+
+    <!-- Left Column -->
+    <div>
+      <!-- Submit Form -->
+      <div class="panel submit-panel">
+        <div class="panel-header">
+          <span class="panel-title">📤 Submit Ticket</span>
+        </div>
+        <div class="form-grid">
+          <div>
+            <label class="form-label">Ticket ID</label>
+            <input class="form-input" id="f-id" placeholder="ticket-001" />
+          </div>
+          <div>
+            <label class="form-label">Customer Email</label>
+            <input class="form-input" id="f-email" type="email" placeholder="customer@example.com" />
+          </div>
+          <div>
+            <label class="form-label">Subject</label>
+            <input class="form-input" id="f-subject" placeholder="e.g. Cannot access billing portal" />
+          </div>
+          <div></div>
+          <div class="form-col-span">
+            <label class="form-label">Ticket Body</label>
+            <textarea class="form-textarea" id="f-body" placeholder="Describe the issue in detail..."></textarea>
+          </div>
+          <div class="form-col-span">
+            <button class="btn-primary" id="submit-btn" onclick="submitTicket()">
+              <span id="btn-text">Process Ticket</span>
+              <span id="btn-spinner" style="display:none"><div class="spinner"></div></span>
+            </button>
+          </div>
+          <!-- Result -->
+          <div class="form-col-span">
+            <div class="result-card" id="result-card">
+              <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem" id="result-badges"></div>
+              <div class="result-section">
+                <div class="result-section-label">📄 Reply Draft</div>
+                <div class="result-draft" id="result-draft"></div>
+              </div>
+              <div class="result-section">
+                <div class="result-section-label">✅ Action Items</div>
+                <div id="result-actions" class="result-tags"></div>
+              </div>
+              <div class="result-section" style="margin-bottom:0">
+                <div class="result-section-label">📊 Summary</div>
+                <div id="result-summary" style="font-size:0.83rem;color:var(--muted);line-height:1.5"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ticket Feed -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">🎯 Ticket Feed</span>
+          <span class="text-muted" style="font-size:0.8rem" id="feed-count">0 tickets</span>
+        </div>
+        <div class="panel-body">
+          <table class="ticket-table" id="ticket-table">
+            <thead>
+              <tr>
+                <th>Ticket ID</th>
+                <th>Category</th>
+                <th>Confidence</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Latency</th>
+              </tr>
+            </thead>
+            <tbody id="ticket-tbody">
+              <tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📭</div>No tickets yet. Submit one above!</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Sidebar -->
+    <div style="display:flex;flex-direction:column;gap:1.5rem">
+
+      <!-- Category Distribution -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">📊 Category Distribution</span>
+        </div>
+        <div class="sidebar-inner">
+          <div class="cat-list" id="cat-list">
+            <div class="text-muted" style="font-size:0.85rem;text-align:center;padding:1rem 0">No data yet</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Latency Chart -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">⚡ Latency Trend (ms)</span>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="latency-canvas" width="340" height="100"></canvas>
+        </div>
+      </div>
+
+      <!-- Quick Test -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">🧪 Quick Test Tickets</span>
+        </div>
+        <div class="sidebar-inner">
+          <div style="display:flex;flex-direction:column;gap:0.5rem">
+            <button class="btn-primary" style="background:linear-gradient(135deg,#ef4444,#dc2626)" onclick="loadSample('urgent')">🚨 Urgent — Data Loss</button>
+            <button class="btn-primary" style="background:linear-gradient(135deg,#f59e0b,#d97706)" onclick="loadSample('billing')">💳 Billing — Wrong Charge</button>
+            <button class="btn-primary" style="background:linear-gradient(135deg,#ef4444,#b91c1c)" onclick="loadSample('bug')">🐛 Bug — App Crash</button>
+            <button class="btn-primary" style="background:linear-gradient(135deg,#6366f1,#4f46e5)" onclick="loadSample('feature')">✨ Feature Request</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API = '';
+const CAT_COLORS = {
+  billing: '#fbbf24', bug: '#f87171', feature: '#818cf8',
+  urgent: '#ff4444', general: '#94a3b8'
+};
+const SAMPLES = {
+  urgent: {
+    id: `TKT-${Date.now()}`,
+    email: 'cto@enterprise.com',
+    subject: 'URGENT: All customer data appears to be deleted from our account',
+    body: 'This is a CRITICAL emergency. We logged in this morning and ALL of our customer records are gone — 50,000+ entries. We are a healthcare company and this is a HIPAA violation if data is truly lost. We need an immediate response. Our CEO is on the phone with legal right now. Account ID: ENT-99821. This needs to be resolved in the next 2 HOURS or we are cancelling and filing a lawsuit.'
+  },
+  billing: {
+    id: `TKT-${Date.now()}`,
+    email: 'finance@acmecorp.com',
+    subject: 'Charged $2,400 instead of $240 - please refund immediately',
+    body: 'Hi, I noticed our invoice #INV-20241203 shows a charge of $2,400 but our plan is $240/month. It looks like a 10x overcharge. We have been customers for 3 years and this has never happened before. Can you please issue a refund for $2,160 and confirm it will be processed within 5 business days? Our accounting team needs documentation for their records.'
+  },
+  bug: {
+    id: `TKT-${Date.now()}`,
+    email: 'dev@startupxyz.io',
+    subject: 'API returns 500 error on /v2/exports endpoint - blocking our release',
+    body: 'We are experiencing a consistent 500 Internal Server Error when calling POST /v2/exports with a payload size over 10MB. This worked fine last week on v1. Error: {"code": "INTERNAL_ERROR", "message": "timeout"}. We have tried reducing payload size (works under 5MB), different auth tokens (same issue), and multiple regions (us-east-1 and eu-west-1 both fail). This is blocking our production release scheduled for tomorrow. Stack trace attached.'
+  },
+  feature: {
+    id: `TKT-${Date.now()}`,
+    email: 'pm@growthhq.com',
+    subject: 'Feature request: Bulk export with custom date ranges',
+    body: 'Hi team, love the product! One feature that would save us hours every week: the ability to do bulk exports filtered by custom date ranges AND by team member. Right now we can only export everything or by date range, but not both. We have 200+ team members and need to pull individual reports for quarterly reviews. Happy to jump on a call to discuss the use case further. Keep up the amazing work!'
+  }
+};
+
+let ticketHistory = [];
+let latencies = [];
+let stats = { total: 0, review: 0, approved: 0, categories: {} };
+
+function loadSample(type) {
+  const s = SAMPLES[type];
+  document.getElementById('f-id').value = `TKT-${Date.now()}`;
+  document.getElementById('f-email').value = s.email;
+  document.getElementById('f-subject').value = s.subject;
+  document.getElementById('f-body').value = s.body;
+}
+
+function showToast(msg, color = 'var(--green)') {
+  const t = document.getElementById('toast');
+  t.innerHTML = `<span style="color:${color}">${msg}</span>`;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+function confColor(c) {
+  if (c >= 0.85) return 'var(--green)';
+  if (c >= 0.75) return 'var(--accent)';
+  return 'var(--yellow)';
+}
+
+async function submitTicket() {
+  const id = document.getElementById('f-id').value.trim() || `TKT-${Date.now()}`;
+  const email = document.getElementById('f-email').value.trim() || 'customer@example.com';
+  const subject = document.getElementById('f-subject').value.trim();
+  const body = document.getElementById('f-body').value.trim();
+
+  if (!subject || !body) { showToast('⚠️ Subject and body are required', 'var(--yellow)'); return; }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  document.getElementById('btn-text').style.display = 'none';
+  document.getElementById('btn-spinner').style.display = 'flex';
+
+  const start = performance.now();
+  try {
+    const res = await fetch(`${API}/tickets`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ticket_id: id, subject, body, customer_email: email, created_at: new Date().toISOString(), metadata: {} })
+    });
+    const data = await res.json();
+    const elapsed = Math.round(performance.now() - start);
+
+    if (!res.ok) throw new Error(data.detail || 'API error');
+
+    renderResult(data, elapsed);
+    addToFeed(data, elapsed);
+    updateStats(data);
+    showToast(`✅ Ticket processed in ${elapsed}ms`);
+  } catch (e) {
+    showToast(`❌ Error: ${e.message}`, 'var(--red)');
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+    document.getElementById('btn-text').style.display = '';
+    document.getElementById('btn-spinner').style.display = 'none';
+  }
+}
+
+function renderResult(data, elapsed) {
+  const card = document.getElementById('result-card');
+  card.classList.add('visible');
+
+  document.getElementById('result-badges').innerHTML = `
+    <span class="badge badge-${data.category}">${data.category.toUpperCase()}</span>
+    <span class="badge badge-${data.priority}">${data.priority}</span>
+    <span class="badge badge-${data.sentiment}">${data.sentiment}</span>
+    ${data.needs_review ? '<span class="badge badge-needs_review">⚠️ REVIEW NEEDED</span>' : '<span class="badge badge-approved">✅ AUTO-APPROVED</span>'}
+    <span class="badge" style="background:rgba(99,102,241,0.1);color:var(--accent)">${elapsed}ms</span>
+  `;
+
+  document.getElementById('result-draft').textContent = data.reply_draft;
+
+  const actions = document.getElementById('result-actions');
+  actions.innerHTML = data.action_items.length
+    ? data.action_items.map(a => `<span class="badge" style="background:rgba(16,185,129,0.1);color:#6ee7b7">${a}</span>`).join('')
+    : '<span class="text-muted" style="font-size:0.8rem">No action items extracted</span>';
+
+  document.getElementById('result-summary').textContent = data.message || '';
+}
+
+function addToFeed(data, elapsed) {
+  const tbody = document.getElementById('ticket-tbody');
+
+  // Clear empty state
+  if (tbody.querySelector('.empty-state')) tbody.innerHTML = '';
+
+  const conf = data.confidence;
+  const confFill = Math.round(conf * 100);
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><span class="mono" style="font-size:0.8rem;color:var(--accent)">${data.ticket_id}</span></td>
+    <td><span class="badge badge-${data.category}">${data.category}</span></td>
+    <td>
+      <div class="conf-bar-wrap">
+        <div class="conf-bar"><div class="conf-bar-fill" style="width:${confFill}%;background:${confColor(conf)}"></div></div>
+        <span class="conf-text">${confFill}%</span>
+      </div>
+    </td>
+    <td><span class="badge badge-${data.priority}">${data.priority}</span></td>
+    <td><span class="badge badge-${data.status}">${data.status.replace('_', ' ')}</span></td>
+    <td class="mono text-muted" style="font-size:0.8rem">${elapsed}ms</td>
+  `;
+  tbody.insertBefore(tr, tbody.firstChild);
+
+  // Keep only 20 rows
+  while (tbody.children.length > 20) tbody.removeChild(tbody.lastChild);
+
+  document.getElementById('feed-count').textContent = `${tbody.children.length} tickets`;
+}
+
+function updateStats(data) {
+  stats.total++;
+  if (data.needs_review) stats.review++;
+  if (data.status === 'approved') stats.approved++;
+  stats.categories[data.category] = (stats.categories[data.category] || 0) + 1;
+
+  document.getElementById('s-total').textContent = stats.total;
+  document.getElementById('s-review').textContent = stats.review;
+  document.getElementById('s-approved').textContent = stats.approved;
+
+  // Update latency display (simulated for demo)
+  const lat = parseInt(document.getElementById('result-badges').textContent.match(/(\d+)ms/)?.[1] || 5000);
+  latencies.push(lat);
+  const avg = Math.round(latencies.reduce((a,b)=>a+b,0)/latencies.length);
+  document.getElementById('s-latency').textContent = `${(avg/1000).toFixed(1)}s`;
+
+  renderCategories();
+  drawLatencyChart();
+}
+
+function renderCategories() {
+  const total = Object.values(stats.categories).reduce((a,b)=>a+b,0);
+  if (!total) return;
+  const list = document.getElementById('cat-list');
+  list.innerHTML = Object.entries(stats.categories)
+    .sort(([,a],[,b])=>b-a)
+    .map(([cat,count]) => {
+      const pct = Math.round((count/total)*100);
+      return `
+        <div class="cat-item">
+          <div class="cat-dot" style="background:${CAT_COLORS[cat]||'#64748b'}"></div>
+          <span class="cat-label">${cat}</span>
+          <div class="cat-bar-bg"><div class="cat-bar-fill" style="width:${pct}%;background:${CAT_COLORS[cat]||'#64748b'}"></div></div>
+          <span class="cat-count">${count}</span>
+        </div>`;
+    }).join('');
+}
+
+function drawLatencyChart() {
+  const canvas = document.getElementById('latency-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  if (latencies.length < 2) return;
+  const data = latencies.slice(-20);
+  const max = Math.max(...data) * 1.1 || 10000;
+  const min = 0;
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(31,45,69,0.8)';
+  ctx.lineWidth = 1;
+  [0.25, 0.5, 0.75, 1].forEach(f => {
+    ctx.beginPath();
+    ctx.moveTo(0, H * f);
+    ctx.lineTo(W, H * f);
+    ctx.stroke();
+  });
+
+  // Gradient fill
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, 'rgba(99,102,241,0.4)');
+  grad.addColorStop(1, 'rgba(99,102,241,0)');
+
+  const xs = data.map((_, i) => (i / (data.length - 1)) * W);
+  const ys = data.map(v => H - ((v - min) / (max - min)) * H);
+
+  ctx.beginPath();
+  ctx.moveTo(xs[0], H);
+  xs.forEach((x, i) => ctx.lineTo(x, ys[i]));
+  ctx.lineTo(xs[xs.length-1], H);
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  ctx.strokeStyle = '#6366f1';
+  ctx.lineWidth = 2;
+  xs.forEach((x, i) => i === 0 ? ctx.moveTo(x, ys[i]) : ctx.lineTo(x, ys[i]));
+  ctx.stroke();
+
+  // Last point dot
+  ctx.beginPath();
+  ctx.arc(xs[xs.length-1], ys[ys.length-1], 4, 0, Math.PI*2);
+  ctx.fillStyle = '#6366f1';
+  ctx.fill();
+}
+
+// Auto-refresh stats from server
+async function refreshStats() {
+  try {
+    const res = await fetch(`${API}/stats`);
+    if (!res.ok) return;
+    const data = await res.json();
+    // Sync server stats
+    if (data.total > 0) {
+      document.getElementById('s-total').textContent = data.total;
+      document.getElementById('s-review').textContent = data.needs_review;
+      document.getElementById('s-approved').textContent = data.approved;
+      if (data.avg_latency_ms > 0) {
+        document.getElementById('s-latency').textContent = `${(data.avg_latency_ms/1000).toFixed(1)}s`;
+      }
+    }
+  } catch {}
+}
+
+setInterval(refreshStats, 10000);
+</script>
+</body>
+</html>
