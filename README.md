@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![CI](https://github.com/yourusername/ai-support-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/ai-support-copilot/actions/workflows/ci.yml)
+[![CI](https://github.com/chenweilie/ai-support-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/chenweilie/ai-support-copilot/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o--mini-412991?logo=openai&logoColor=white)](https://openai.com/)
@@ -109,7 +109,7 @@ Low Confidence (< 0.75%)
 ### 1. Clone & Configure
 
 ```bash
-git clone https://github.com/yourusername/ai-support-copilot.git
+git clone https://github.com/chenweilie/ai-support-copilot.git
 cd ai-support-copilot
 
 cp .env.example .env
